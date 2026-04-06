@@ -1,0 +1,23 @@
+export interface SoilData {
+  n: number;
+  p: number;
+  k: number;
+  temperature: number;
+  humidity: number;
+  ph: number;
+  rainfall: number;
+}
+
+export interface RecommendationResult {
+  crop: string;
+  confidence: number;
+  reasoning: string;
+  seasonalContext: string;
+  stateSuitability: string[];
+}
+
+export interface MLMetric {
+  name: string;
+  value: number;
+  description: string;
+}

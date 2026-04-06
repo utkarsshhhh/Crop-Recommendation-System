@@ -1,0 +1,5 @@
+{
+  "name": "KisanAI: Crop Recommendation System",
+  "description": "An India-focused crop recommendation system using soil and climate data to help farmers maximize yield.",
+  "requestFramePermissions": []
+}
