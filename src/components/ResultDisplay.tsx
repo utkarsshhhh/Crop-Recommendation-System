@@ -49,14 +49,14 @@ OPTIMAL SOIL TYPES
 ${result.optimalSoilTypes.join(", ")}
 
 --------------------------------------
-Precision Intelligence by KisanAI
+Precision Intelligence by Crop Recommendation System
     `.trim();
 
     const blob = new Blob([reportContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `KisanAI_Report_${result.crop}.txt`;
+    link.download = `CropRecommendationReport_${result.crop}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

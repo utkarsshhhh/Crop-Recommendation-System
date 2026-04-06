@@ -173,7 +173,7 @@ export default function App() {
                   <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-brand-900/20">
                     <Sprout className="w-7 h-7" />
                   </div>
-                  <h1 className="text-3xl font-black text-white tracking-tighter">KisanAI</h1>
+                  <h1 className="text-3xl font-black text-white tracking-tighter">Crop Recommendation System</h1>
                 </div>
                 <p className="text-lg leading-relaxed max-w-md font-medium text-stone-400">
                   Revolutionizing Indian agriculture through data-driven precision. Join the movement towards sustainable farming.
@@ -204,7 +204,7 @@ export default function App() {
             </div>
             
             <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-bold uppercase tracking-widest">
-              <p>© 2026 KisanAI Intelligence. All rights reserved.</p>
+              <p>© 2026 Crop Recommendation System. All rights reserved.</p>
               <div className="flex items-center gap-10">
                 <a href="#" className="hover:text-white transition-colors">Security</a>
                 <a href="#" className="hover:text-white transition-colors">Status</a>

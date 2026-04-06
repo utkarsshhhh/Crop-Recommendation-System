@@ -112,7 +112,7 @@ export const ModelPerformance: React.FC = () => {
             <div className="text-[10px] font-black text-stone-500 uppercase tracking-widest">Final Selection</div>
             <h4 className="text-xl font-black tracking-tight">Random Forest Classifier</h4>
             <p className="text-xs text-stone-400 leading-relaxed">
-              Selected as the primary engine for KisanAI due to its superior handling of multi-class classification and non-linear soil-crop relationships.
+              Selected as the primary engine for the Crop Recommendation System due to its superior handling of multi-class classification and non-linear soil-crop relationships.
             </p>
           </div>
         </div>

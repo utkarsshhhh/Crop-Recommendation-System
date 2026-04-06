@@ -37,7 +37,7 @@ export const Navbar: React.FC = () => {
                 <Sprout className="w-6 h-6" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl font-black text-stone-900 tracking-tight leading-none">KisanAI</h1>
+                <h1 className="text-xl font-black text-stone-900 tracking-tight leading-none">Crop Recommendation System</h1>
                 <p className="text-[10px] font-black text-brand-600 uppercase tracking-[0.2em] mt-1">Precision Intelligence</p>
               </div>
             </a>

@@ -25,7 +25,7 @@ export const VivaPrep: React.FC = () => {
           </div>
           <h2 className="text-5xl font-black text-stone-900 tracking-tighter">ML Pipeline & Viva Prep</h2>
           <p className="text-stone-500 max-w-2xl text-lg leading-relaxed font-medium">
-            Deep dive into the architecture, feature engineering, and model selection criteria used for the KisanAI recommendation engine.
+            Deep dive into the architecture, feature engineering, and model selection criteria used for the Crop Recommendation System recommendation engine.
           </p>
         </div>
         <div className="flex gap-6">
