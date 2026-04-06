@@ -18,9 +18,18 @@
   --color-brand-900: #223b2c;
   --color-brand-950: #122018;
   
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  
   --color-stone-50: #fcfaf7;
   --color-stone-100: #f5f1ea;
   --color-stone-200: #ece4d5;
+  --color-stone-300: #dcd2c1;
 }
 
 @layer base {
@@ -38,9 +47,22 @@
     @apply bg-white/70 backdrop-blur-md border border-white/20;
   }
   
+  .glass-dark {
+    @apply bg-stone-900/80 backdrop-blur-md border border-white/10;
+  }
+  
   .text-balance {
     text-wrap: balance;
   }
+  
+  .bento-card {
+    @apply bg-white border border-stone-200 rounded-[2rem] shadow-sm hover:shadow-xl hover:shadow-stone-200/50 transition-all duration-500;
+  }
+  
+  .inner-glow {
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.5);
+  }
 }
+
 
 

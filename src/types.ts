@@ -14,6 +14,9 @@ export interface RecommendationResult {
   reasoning: string;
   seasonalContext: string;
   stateSuitability: string[];
+  averageYield: string;
+  commonPests: string[];
+  optimalSoilTypes: string[];
 }
 
 export interface MLMetric {

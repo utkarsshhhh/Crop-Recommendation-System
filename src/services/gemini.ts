@@ -25,6 +25,9 @@ When provided with soil and climate data, you must:
 3. Explain why this crop is suitable based on the input features (e.g., "Rice requires high rainfall and humidity").
 4. Mention the typical season (Kharif/Rabi) for this crop in India.
 5. List 3-5 Indian states where this crop is commonly grown.
+6. Provide the average yield (e.g., "2.5 - 3.5 tons per hectare").
+7. List 2-3 common pests and diseases for this crop.
+8. List 2-3 optimal soil types for this crop.
 
 Return the result in JSON format.
 `;
@@ -59,9 +62,27 @@ export async function getCropRecommendation(data: SoilData): Promise<Recommendat
           stateSuitability: {
             type: Type.ARRAY,
             items: { type: Type.STRING }
+          },
+          averageYield: { type: Type.STRING },
+          commonPests: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+          },
+          optimalSoilTypes: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
           }
         },
-        required: ["crop", "confidence", "reasoning", "seasonalContext", "stateSuitability"]
+        required: [
+          "crop", 
+          "confidence", 
+          "reasoning", 
+          "seasonalContext", 
+          "stateSuitability",
+          "averageYield",
+          "commonPests",
+          "optimalSoilTypes"
+        ]
       }
     }
   });
