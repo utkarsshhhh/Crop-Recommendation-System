@@ -3,8 +3,6 @@ import { Sprout, Github, ChevronRight } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Dashboard", href: "#dashboard" },
-  { label: "Performance", href: "#performance" },
-  { label: "Research", href: "#research" },
 ];
 
 export const Navbar: React.FC = () => {

@@ -22,7 +22,7 @@ export default function App() {
       const recommendation = await getCropRecommendation(data);
       setResult(recommendation);
     } catch (err) {
-      setError("Failed to get recommendation. Please try again.");
+      setError(err instanceof Error ? err.message : "Failed to get recommendation. Please try again.");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -99,18 +99,32 @@ export default function App() {
                 </motion.div>
               </div>
 
-              <div className="relative">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="relative z-10"
-                >
-                  <div className="absolute -inset-4 bg-brand-600/5 blur-3xl rounded-full" />
-                  <CropForm onSubmit={handleRecommend} isLoading={isLoading} />
-                </motion.div>
-                
-                {/* Decorative Elements */}
+                  <div className="relative">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className="relative z-10"
+                    >
+                      <div className="absolute -inset-4 bg-brand-600/5 blur-3xl rounded-full" />
+                      <CropForm onSubmit={handleRecommend} isLoading={isLoading} />
+                    </motion.div>
+                    
+                    <AnimatePresence>
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          className="mt-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-medium shadow-sm"
+                        >
+                          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                          {error}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
+                    {/* Decorative Elements */}
                 <div className="absolute -top-12 -right-12 w-32 h-32 bg-accent-100 rounded-full blur-3xl opacity-50" />
                 <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-brand-100 rounded-full blur-3xl opacity-50" />
               </div>

@@ -1,8 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { SoilData, RecommendationResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-
 const SYSTEM_INSTRUCTION = `
 You are an expert Agricultural Data Scientist specializing in Indian crops. 
 Your task is to act as a Crop Recommendation ML Model (simulating a Random Forest classifier trained on the Kaggle Crop Recommendation dataset).
@@ -33,6 +31,12 @@ Return the result in JSON format.
 `;
 
 export async function getCropRecommendation(data: SoilData): Promise<RecommendationResult> {
+  const apiKey = process.env.GEMINI_API_KEY || "";
+  if (!apiKey) {
+    throw new Error("Gemini API key is missing. Please configure it in the Secrets panel.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview";
   
   const prompt = `
@@ -46,51 +50,68 @@ export async function getCropRecommendation(data: SoilData): Promise<Recommendat
   Rainfall: ${data.rainfall}mm
   `;
 
-  const response = await ai.models.generateContent({
-    model,
-    contents: prompt,
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          crop: { type: Type.STRING },
-          confidence: { type: Type.NUMBER },
-          reasoning: { type: Type.STRING },
-          seasonalContext: { type: Type.STRING },
-          stateSuitability: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-          },
-          averageYield: { type: Type.STRING },
-          commonPests: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-          },
-          optimalSoilTypes: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-          }
-        },
-        required: [
-          "crop", 
-          "confidence", 
-          "reasoning", 
-          "seasonalContext", 
-          "stateSuitability",
-          "averageYield",
-          "commonPests",
-          "optimalSoilTypes"
-        ]
-      }
-    }
-  });
-
   try {
-    return JSON.parse(response.text || "{}") as RecommendationResult;
+    const response = await ai.models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            crop: { type: Type.STRING },
+            confidence: { type: Type.NUMBER },
+            reasoning: { type: Type.STRING },
+            seasonalContext: { type: Type.STRING },
+            stateSuitability: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            },
+            averageYield: { type: Type.STRING },
+            commonPests: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            },
+            optimalSoilTypes: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            }
+          },
+          required: [
+            "crop", 
+            "confidence", 
+            "reasoning", 
+            "seasonalContext", 
+            "stateSuitability",
+            "averageYield",
+            "commonPests",
+            "optimalSoilTypes"
+          ]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error("Empty response from AI model");
+    }
+
+    // Clean potential markdown code blocks if present
+    const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
+    const result = JSON.parse(cleanedText) as RecommendationResult;
+    
+    // Basic validation to ensure required fields exist
+    if (!result.crop || !result.stateSuitability) {
+      throw new Error("Invalid response structure from AI model");
+    }
+
+    return result;
   } catch (error) {
-    console.error("Failed to parse Gemini response:", error);
-    throw new Error("Failed to get recommendation");
+    console.error("Gemini API Error:", error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("An unexpected error occurred during analysis");
   }
 }
