@@ -31,9 +31,18 @@ Return the result in JSON format.
 `;
 
 export async function getCropRecommendation(data: SoilData): Promise<RecommendationResult> {
-  const apiKey = process.env.GEMINI_API_KEY || "";
-  if (!apiKey) {
-    throw new Error("Gemini API key is missing. Please configure it in the Secrets panel.");
+  // Try to get key from multiple sources:
+  // 1. window.process (injected by server in production)
+  // 2. process.env (baked in by Vite in development)
+  // 3. process.env.API_KEY (platform default)
+  const apiKey = 
+    (globalThis as any).process?.env?.GEMINI_API_KEY || 
+    process.env.GEMINI_API_KEY || 
+    (process.env as any).API_KEY;
+  
+  // If no key is found at all, throw a specific error
+  if (!apiKey || apiKey === "") {
+    throw new Error("API_KEY_MISSING: No Gemini API key found in environment.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -50,68 +59,51 @@ export async function getCropRecommendation(data: SoilData): Promise<Recommendat
   Rainfall: ${data.rainfall}mm
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            crop: { type: Type.STRING },
-            confidence: { type: Type.NUMBER },
-            reasoning: { type: Type.STRING },
-            seasonalContext: { type: Type.STRING },
-            stateSuitability: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            },
-            averageYield: { type: Type.STRING },
-            commonPests: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            },
-            optimalSoilTypes: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            }
+  const response = await ai.models.generateContent({
+    model,
+    contents: prompt,
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          crop: { type: Type.STRING },
+          confidence: { type: Type.NUMBER },
+          reasoning: { type: Type.STRING },
+          seasonalContext: { type: Type.STRING },
+          stateSuitability: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
           },
-          required: [
-            "crop", 
-            "confidence", 
-            "reasoning", 
-            "seasonalContext", 
-            "stateSuitability",
-            "averageYield",
-            "commonPests",
-            "optimalSoilTypes"
-          ]
-        }
+          averageYield: { type: Type.STRING },
+          commonPests: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+          },
+          optimalSoilTypes: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+          }
+        },
+        required: [
+          "crop", 
+          "confidence", 
+          "reasoning", 
+          "seasonalContext", 
+          "stateSuitability",
+          "averageYield",
+          "commonPests",
+          "optimalSoilTypes"
+        ]
       }
-    });
-
-    const text = response.text;
-    if (!text) {
-      throw new Error("Empty response from AI model");
     }
+  });
 
-    // Clean potential markdown code blocks if present
-    const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
-    const result = JSON.parse(cleanedText) as RecommendationResult;
-    
-    // Basic validation to ensure required fields exist
-    if (!result.crop || !result.stateSuitability) {
-      throw new Error("Invalid response structure from AI model");
-    }
-
-    return result;
+  try {
+    return JSON.parse(response.text || "{}") as RecommendationResult;
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error("An unexpected error occurred during analysis");
+    console.error("Failed to parse Gemini response:", error);
+    throw new Error("Failed to get recommendation");
   }
 }

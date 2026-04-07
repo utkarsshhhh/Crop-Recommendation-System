@@ -4,16 +4,27 @@ import { ResultDisplay } from "./components/ResultDisplay";
 import { VivaPrep } from "./components/VivaPrep";
 import { getCropRecommendation } from "./services/gemini";
 import { SoilData, RecommendationResult } from "./types";
+import { getHistory, saveToHistory, HistoryItem } from "./services/history";
 import { motion, AnimatePresence } from "motion/react";
-import { Sprout, Info, AlertCircle, Map, CloudSun, Github, Zap, ShieldCheck } from "lucide-react";
+import { Sprout, Info, AlertCircle, Map, CloudSun, Github, Zap, ShieldCheck, History } from "lucide-react";
 
 import { ModelPerformance } from "./components/ModelPerformance";
 import { Navbar } from "./components/Navbar";
+import { HistoryList } from "./components/HistoryList";
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [result, setResult] = React.useState<RecommendationResult | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [history, setHistory] = React.useState<HistoryItem[]>([]);
+
+  React.useEffect(() => {
+    const fetchHistory = async () => {
+      const data = await getHistory();
+      setHistory(data);
+    };
+    fetchHistory();
+  }, []);
 
   const handleRecommend = async (data: SoilData) => {
     setIsLoading(true);
@@ -21,12 +32,25 @@ export default function App() {
     try {
       const recommendation = await getCropRecommendation(data);
       setResult(recommendation);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to get recommendation. Please try again.");
+      await saveToHistory(data, recommendation);
+      const updatedHistory = await getHistory();
+      setHistory(updatedHistory);
+    } catch (err: any) {
+      const errMsg = err.message || "";
+      if (errMsg.includes("API_KEY_MISSING") || errMsg.includes("Requested entity was not found")) {
+        setError("AI Configuration Required: Please ensure your Gemini API key is configured in the Secrets panel.");
+      } else {
+        setError("Failed to get recommendation. Please try again.");
+      }
       console.error(err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSelectHistory = (item: HistoryItem) => {
+    setResult(item.result);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -99,32 +123,18 @@ export default function App() {
                 </motion.div>
               </div>
 
-                  <div className="relative">
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.4 }}
-                      className="relative z-10"
-                    >
-                      <div className="absolute -inset-4 bg-brand-600/5 blur-3xl rounded-full" />
-                      <CropForm onSubmit={handleRecommend} isLoading={isLoading} />
-                    </motion.div>
-                    
-                    <AnimatePresence>
-                      {error && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          className="mt-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-medium shadow-sm"
-                        >
-                          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                          {error}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    
-                    {/* Decorative Elements */}
+              <div className="relative">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="relative z-10"
+                >
+                  <div className="absolute -inset-4 bg-brand-600/5 blur-3xl rounded-full" />
+                  <CropForm onSubmit={handleRecommend} isLoading={isLoading} />
+                </motion.div>
+                
+                {/* Decorative Elements */}
                 <div className="absolute -top-12 -right-12 w-32 h-32 bg-accent-100 rounded-full blur-3xl opacity-50" />
                 <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-brand-100 rounded-full blur-3xl opacity-50" />
               </div>
@@ -135,6 +145,20 @@ export default function App() {
         {/* Results Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
           <AnimatePresence mode="wait">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mb-8 p-6 bg-red-50 border border-red-100 rounded-[2rem] flex items-center gap-4 text-red-800"
+              >
+                <AlertCircle className="w-6 h-6 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold">{error}</p>
+                </div>
+              </motion.div>
+            )}
+
             {result ? (
               <div className="space-y-16">
                 <div className="flex items-center gap-4">
@@ -143,24 +167,32 @@ export default function App() {
                   <div className="h-px flex-1 bg-stone-200" />
                 </div>
                 <ResultDisplay result={result} />
+                
+                {/* History List */}
+                <HistoryList items={history} onSelect={handleSelectHistory} />
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <FeatureCard 
-                  icon={<Zap className="w-6 h-6" />} 
-                  title="Instant Analysis" 
-                  desc="Get results in seconds using our optimized inference engine."
-                />
-                <FeatureCard 
-                  icon={<ShieldCheck className="w-6 h-6" />} 
-                  title="Data Privacy" 
-                  desc="Your soil data is encrypted and used only for recommendation."
-                />
-                <FeatureCard 
-                  icon={<Map className="w-6 h-6" />} 
-                  title="Regional Context" 
-                  desc="Tailored for specific Indian soil variability and climate zones."
-                />
+              <div className="space-y-16">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <FeatureCard 
+                    icon={<Zap className="w-6 h-6" />} 
+                    title="Instant Analysis" 
+                    desc="Get results in seconds using our optimized inference engine."
+                  />
+                  <FeatureCard 
+                    icon={<ShieldCheck className="w-6 h-6" />} 
+                    title="Data Privacy" 
+                    desc="Your soil data is encrypted and used only for recommendation."
+                  />
+                  <FeatureCard 
+                    icon={<Map className="w-6 h-6" />} 
+                    title="Regional Context" 
+                    desc="Tailored for specific Indian soil variability and climate zones."
+                  />
+                </div>
+                
+                {/* History List */}
+                <HistoryList items={history} onSelect={handleSelectHistory} />
               </div>
             )}
           </AnimatePresence>
