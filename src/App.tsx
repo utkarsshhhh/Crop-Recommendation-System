@@ -37,12 +37,24 @@ export default function App() {
       setHistory(updatedHistory);
     } catch (err: any) {
       const errMsg = err.message || "";
-      if (errMsg.includes("API_KEY_MISSING") || errMsg.includes("Requested entity was not found")) {
-        setError("AI Configuration Required: Please ensure your Gemini API key is configured in the Secrets panel.");
+      
+      if (errMsg.includes("API_KEY_MISSING") || errMsg.includes("Requested entity was not found") || errMsg.includes("INVALID_KEY")) {
+        setError("AI Configuration Required: Please ensure your Gemini API key is correctly configured in the Secrets panel.");
+      } else if (errMsg.includes("RATE_LIMIT")) {
+        setError("System Overloaded: We've hit the Gemini API rate limit. Please wait a moment and try your request again.");
+      } else if (errMsg.includes("LOCATION_NOT_SUPPORTED")) {
+        setError("Region Not Supported: The Gemini API service is not available in your current geographic region.");
+      } else if (errMsg.includes("SERVER_ERROR")) {
+        setError("Service Unavailable: Google's AI service is having temporary issues. Please try again in a few minutes.");
+      } else if (errMsg.includes("PARSE_ERROR")) {
+        setError("Analysis Failed: The AI provided a recommendation in an unexpected format. Please try one more time.");
+      } else if (errMsg.includes("AI_ERROR")) {
+        // Strip the prefix and show the raw message
+        setError(errMsg.replace("AI_ERROR: ", ""));
       } else {
-        setError("Failed to get recommendation. Please try again.");
+        setError("Recommendation Failed: An unexpected error occurred. Please check your connection and try again.");
       }
-      console.error(err);
+      console.error("Recommendation Error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -169,7 +181,9 @@ export default function App() {
                 <ResultDisplay result={result} />
                 
                 {/* History List */}
-                <HistoryList items={history} onSelect={handleSelectHistory} />
+                <div id="history">
+                  <HistoryList items={history} onSelect={handleSelectHistory} />
+                </div>
               </div>
             ) : (
               <div className="space-y-16">
@@ -192,7 +206,9 @@ export default function App() {
                 </div>
                 
                 {/* History List */}
-                <HistoryList items={history} onSelect={handleSelectHistory} />
+                <div id="history">
+                  <HistoryList items={history} onSelect={handleSelectHistory} />
+                </div>
               </div>
             )}
           </AnimatePresence>

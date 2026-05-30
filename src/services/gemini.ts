@@ -59,51 +59,86 @@ export async function getCropRecommendation(data: SoilData): Promise<Recommendat
   Rainfall: ${data.rainfall}mm
   `;
 
-  const response = await ai.models.generateContent({
-    model,
-    contents: prompt,
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          crop: { type: Type.STRING },
-          confidence: { type: Type.NUMBER },
-          reasoning: { type: Type.STRING },
-          seasonalContext: { type: Type.STRING },
-          stateSuitability: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-          },
-          averageYield: { type: Type.STRING },
-          commonPests: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-          },
-          optimalSoilTypes: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-          }
-        },
-        required: [
-          "crop", 
-          "confidence", 
-          "reasoning", 
-          "seasonalContext", 
-          "stateSuitability",
-          "averageYield",
-          "commonPests",
-          "optimalSoilTypes"
-        ]
-      }
-    }
-  });
-
   try {
-    return JSON.parse(response.text || "{}") as RecommendationResult;
-  } catch (error) {
-    console.error("Failed to parse Gemini response:", error);
-    throw new Error("Failed to get recommendation");
+    const response = await ai.models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            crop: { type: Type.STRING },
+            confidence: { type: Type.NUMBER },
+            reasoning: { type: Type.STRING },
+            seasonalContext: { type: Type.STRING },
+            stateSuitability: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            },
+            averageYield: { type: Type.STRING },
+            commonPests: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            },
+            optimalSoilTypes: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            }
+          },
+          required: [
+            "crop", 
+            "confidence", 
+            "reasoning", 
+            "seasonalContext", 
+            "stateSuitability",
+            "averageYield",
+            "commonPests",
+            "optimalSoilTypes"
+          ]
+        }
+      }
+    });
+
+    if (!response.text) {
+      throw new Error("EMPTY_RESPONSE: The AI returned an empty response.");
+    }
+
+    try {
+      return JSON.parse(response.text) as RecommendationResult;
+    } catch (parseError) {
+      console.error("Failed to parse Gemini response:", parseError);
+      throw new Error("PARSE_ERROR: Failed to understand the AI's recommendation format.");
+    }
+
+  } catch (error: any) {
+    console.error("Gemini API Error:", error);
+    
+    // Check for common Google GenAI error patterns
+    const errorMessage = error.message || "";
+    
+    if (errorMessage.includes("429") || errorMessage.includes("Too Many Requests")) {
+      throw new Error("RATE_LIMIT: The system is currently overloaded. Please wait a minute and try again.");
+    }
+    
+    if (errorMessage.includes("401") || errorMessage.includes("API_KEY_INVALID")) {
+      throw new Error("INVALID_KEY: The API key provided is not authorized or has expired.");
+    }
+    
+    if (errorMessage.includes("400") || errorMessage.includes("User location is not supported")) {
+      throw new Error("LOCATION_NOT_SUPPORTED: The Gemini API is not currently available in your region.");
+    }
+    
+    if (errorMessage.includes("500") || errorMessage.includes("503") || errorMessage.includes("Internal Server Error")) {
+      throw new Error("SERVER_ERROR: The AI service is temporarily unavailable. Please try again later.");
+    }
+
+    if (errorMessage.includes("API_KEY_MISSING")) {
+      throw error; // Re-throw the original structured error
+    }
+
+    // Default error for other cases
+    throw new Error(`AI_ERROR: ${errorMessage || "An unexpected error occurred while communicating with the AI."}`);
   }
 }

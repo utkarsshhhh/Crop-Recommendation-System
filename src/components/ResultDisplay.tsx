@@ -82,7 +82,7 @@ Precision Intelligence by Crop Recommendation System
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Result Card */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="lg:col-span-12 space-y-8">
           <div className="bento-card overflow-hidden group">
             <div className="bg-brand-900 p-12 text-white relative overflow-hidden">
             <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -193,21 +193,6 @@ Precision Intelligence by Crop Recommendation System
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Visual Card */}
-        <div className="lg:col-span-4 bento-card overflow-hidden relative group">
-          <img 
-            src={`https://picsum.photos/seed/${result.crop}/1000/1500`} 
-            alt={result.crop} 
-            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-transparent to-transparent opacity-80" />
-          <div className="absolute bottom-0 left-0 p-10 text-white space-y-2">
-            <h4 className="text-2xl font-black tracking-tighter uppercase">{result.crop}</h4>
-            <p className="text-xs font-medium text-stone-300 italic">Visual representation of cultivation</p>
           </div>
         </div>
       </div>
