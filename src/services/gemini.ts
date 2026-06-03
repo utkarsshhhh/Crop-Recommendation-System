@@ -35,10 +35,12 @@ export async function getCropRecommendation(data: SoilData): Promise<Recommendat
   // 1. window.process (injected by server in production)
   // 2. process.env (baked in by Vite in development)
   // 3. process.env.API_KEY (platform default)
+  // 4. import.meta.env.VITE_GEMINI_API_KEY (Vite default for static hosts)
   const apiKey = 
     (globalThis as any).process?.env?.GEMINI_API_KEY || 
     process.env.GEMINI_API_KEY || 
-    (process.env as any).API_KEY;
+    (process.env as any).API_KEY ||
+    (import.meta as any).env?.VITE_GEMINI_API_KEY;
   
   // If no key is found at all, throw a specific error
   if (!apiKey || apiKey === "") {
